@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačka nákladů na 3D tisk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eef2f3;
+            color: #333;
+        }
+        header {
+            background-color: #3a77b1;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            margin: 20px auto;
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #3a77b1;
+            color: white;
+            text-transform: uppercase;
+        }
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .button {
+            background-color: #3a77b1;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #336999;
+        }
+        .result {
+            font-size: 1.3em;
+            margin-top: 20px;
+            color: #3a77b1;
+            font-weight: bold;
+            text-align: center;
+        }
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Kalkulačka nákladů na 3D tisk</h1>
+    </header>
+    <div class="container">
+        <table>
+            <tr>
+                <th>Kritérium</th>
+                <th>Vstup</th>
+            </tr>
+            <tr>
+                <td>Materiál</td>
+                <td>
+                    <select id="material" class="input-field">
+                        <option value="PLA" data-power="120">PLA</option>
+                        <option value="PETG" data-power="140">PETG</option>
+                        <option value="ABS" data-power="160">ABS</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Doba tisku</td>
+                <td>
+                    <div class="form-group">
+                        <input type="number" id="printHours" class="input-field" placeholder="Hodiny" min="0"> :
+                        <input type="number" id="printMinutes" class="input-field" placeholder="Minuty" min="0" max="59">
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>Cena elektřiny (za kWh)</td>
+                <td><input type="number" id="electricityCost" class="input-field" placeholder="Zadejte cenu v Kč"></td>
+            </tr>
+            <tr>
+                <td>Hmotnost výtisku (gramy)</td>
+                <td><input type="number" id="printWeight" class="input-field" placeholder="Zadejte hmotnost v gramech"></td>
+            </tr>
+            <tr>
+                <td>Cena filamentu (za kg)</td>
+                <td><input type="number" id="filamentCost" class="input-field" placeholder="Zadejte cenu v Kč"></td>
+            </tr>
+            <tr>
+                <td>Opotřebení tiskárny (za hodinu)</td>
+                <td><input type="number" id="wearCost" class="input-field" placeholder="Zadejte cenu v Kč"></td>
+            </tr>
+            <tr>
+                <td>Cena práce (za hodinu)</td>
+                <td><input type="number" id="laborCost" class="input-field" placeholder="Zadejte cenu v Kč"></td>
+            </tr>
+            <tr>
+                <td>Složitost modelu</td>
+                <td>
+                    <select id="complexity" class="input-field">
+                        <option value="1">Nízká</option>
+                        <option value="1.2">Střední</option>
+                        <option value="1.5">Vysoká</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <button class="button" onclick="calculateCost()">Spočítat</button>
+        <div id="result" class="result"></div>
+    </div>
+    <script>
+        function calculateCost() {
+            const material = document.getElementById('material');
+            const power = parseFloat(material.options[material.selectedIndex].getAttribute('data-power'));
+            const printHours = parseFloat(document.getElementById('printHours').value) || 0;
+            const printMinutes = parseFloat(document.getElementById('printMinutes').value) || 0;
+            const printTime = printHours + (printMinutes / 60);
+            const electricityCost = parseFloat(document.getElementById('electricityCost').value) || 0;
+            const printWeight = parseFloat(document.getElementById('printWeight').value) || 0;
+            const filamentCost = parseFloat(document.getElementById('filamentCost').value) || 0;
+            const wearCost = parseFloat(document.getElementById('wearCost').value) || 0;
+            const laborCost = parseFloat(document.getElementById('laborCost').value) || 0;
+            const complexity = parseFloat(document.getElementById('complexity').value);
+
+            const energyCost = (power / 1000) * printTime * electricityCost;
+            const materialCost = (printWeight / 1000) * filamentCost;
+            const totalWearCost = printTime * wearCost;
+            const totalLaborCost = printTime * laborCost;
+
+            const totalCost = (energyCost + materialCost + totalWearCost + totalLaborCost) * complexity;
+
+            document.getElementById('result').innerText = `Celková cena: ${totalCost.toFixed(2)} Kč`;
+        }
+    </script>
+</body>
+</html>
